@@ -1,10 +1,12 @@
 package main
 
 import (
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/joho/godotenv"
 	"log"
 	"os"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/gofiber/fiber/v2"
+	"github.com/joho/godotenv"
 )
 
 var numericKeyboard = tgbotapi.NewReplyKeyboard(
@@ -57,4 +59,9 @@ func main() {
 			log.Panic(err)
 		}
 	}
+	app := fiber.New()
+	app.Get("/", func(c *fiber.Ctx) error {
+		return c.SendString("OK")
+	})
+	app.Listen(":8080")
 }
