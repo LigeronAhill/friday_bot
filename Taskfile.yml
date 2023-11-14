@@ -1,0 +1,9 @@
+version: '3'
+
+tasks:
+  push:
+    cmds:
+      - git pull
+      - git add .
+      - git commit -m "{{.CLI_ARGS}}"
+      - git push
