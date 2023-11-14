@@ -59,9 +59,10 @@ func main() {
 			log.Panic(err)
 		}
 	}
+	port := os.Getenv("PORT")
 	app := fiber.New()
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("OK")
 	})
-	app.Listen(":8080")
+	app.Listen(":" + port)
 }
