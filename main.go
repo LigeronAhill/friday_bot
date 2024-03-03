@@ -2,12 +2,14 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"os"
 
 	"github.com/LigeronAhill/friday_bot/clients/telegram"
 	event_consumer "github.com/LigeronAhill/friday_bot/consumer/event-consumer"
 	ev "github.com/LigeronAhill/friday_bot/events/telegram"
+
 	// "github.com/LigeronAhill/friday_bot/storage/files"
 	"github.com/LigeronAhill/friday_bot/storage/pg"
 )
@@ -20,8 +22,16 @@ const (
 
 func main() {
 	token := os.Getenv("TELEGRAM_APITOKEN")
-	db_url := os.Getenv("DATABASE_URL")
-	s, err := pg.New(db_url)
+	host := os.Getenv("PGHOST")
+	port := os.Getenv("PGPORT")
+	user := os.Getenv("PGUSER")
+	password := os.Getenv("PGPASSWORD")
+	dbname := os.Getenv("PGDATABASE")
+	sslmode := os.Getenv("PGSSLMODE")
+	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s "+
+		"password=%s dbname=%s sslmode=%s",
+		host, port, user, password, dbname, sslmode)
+	s, err := pg.New(psqlInfo)
 	if err != nil {
 		log.Fatal("can't connect to db", err)
 	}

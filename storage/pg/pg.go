@@ -6,7 +6,7 @@ import (
 	"log"
 
 	"github.com/LigeronAhill/friday_bot/storage"
-	_ "github.com/lib/pq"
+	_ "github.com/jackc/pgx"
 )
 
 type Storage struct {
