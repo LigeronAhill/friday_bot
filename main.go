@@ -1,68 +1,52 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"os"
 
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/gofiber/fiber/v2"
-	"github.com/joho/godotenv"
+	"github.com/LigeronAhill/friday_bot/clients/telegram"
+	event_consumer "github.com/LigeronAhill/friday_bot/consumer/event-consumer"
+	ev "github.com/LigeronAhill/friday_bot/events/telegram"
+	// "github.com/LigeronAhill/friday_bot/storage/files"
+	"github.com/LigeronAhill/friday_bot/storage/pg"
 )
 
-var numericKeyboard = tgbotapi.NewReplyKeyboard(
-	tgbotapi.NewKeyboardButtonRow(
-		tgbotapi.NewKeyboardButton("1"),
-		tgbotapi.NewKeyboardButton("2"),
-		tgbotapi.NewKeyboardButton("3"),
-	),
-	tgbotapi.NewKeyboardButtonRow(
-		tgbotapi.NewKeyboardButton("4"),
-		tgbotapi.NewKeyboardButton("5"),
-		tgbotapi.NewKeyboardButton("6"),
-	),
+const (
+	tgBotHost   = "api.telegram.org"
+	storagePath = "files_storage"
+	batchSize   = 100
 )
 
 func main() {
-	err := godotenv.Load()
+	token := os.Getenv("TELEGRAM_APITOKEN")
+	db_url := os.Getenv("DB_URL")
+	s, err := pg.New(db_url)
 	if err != nil {
-		log.Println("Error loading .env file")
+		log.Fatal("can't connect to db", err)
 	}
-	bot, err := tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_APITOKEN"))
-	if err != nil {
-		log.Panic(err)
+	if err := s.Init(); err != nil {
+		log.Fatal("can't init storage: ", err)
 	}
+	tgClient := telegram.New(tgBotHost, token)
+	// tgClient := telegram.New(tgBotHost, mustToken())
 
-	bot.Debug = true
+	eventsProcessor := ev.New(tgClient, s)
 
-	log.Printf("Authorized on account %s", bot.Self.UserName)
-
-	u := tgbotapi.NewUpdate(0)
-	u.Timeout = 60
-
-	updates := bot.GetUpdatesChan(u)
-
-	for update := range updates {
-		if update.Message == nil { // ignore non-Message updates
-			continue
-		}
-
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
-
-		switch update.Message.Text {
-		case "/open":
-			msg.ReplyMarkup = numericKeyboard
-		case "/close":
-			msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
-		}
-
-		if _, err := bot.Send(msg); err != nil {
-			log.Panic(err)
-		}
+	log.Print("service started")
+	consumer := event_consumer.New(eventsProcessor, eventsProcessor, batchSize)
+	if err := consumer.Start(); err != nil {
+		log.Fatal("service is stopped", err)
 	}
-	port := os.Getenv("PORT")
-	app := fiber.New()
-	app.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString("OK")
-	})
-	app.Listen(":" + port)
+}
+
+func mustToken() string {
+	// bot -tg-bot-token 'my token'
+	token := flag.String("t", "", "token for access telegram bot")
+	flag.Parse()
+
+	if *token == "" {
+		log.Fatal("token is not specified")
+	}
+	return *token
 }
