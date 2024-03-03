@@ -20,7 +20,7 @@ const (
 
 func main() {
 	token := os.Getenv("TELEGRAM_APITOKEN")
-	db_url := os.Getenv("DB_URL")
+	db_url := os.Getenv("DATABASE_URL")
 	s, err := pg.New(db_url)
 	if err != nil {
 		log.Fatal("can't connect to db", err)
