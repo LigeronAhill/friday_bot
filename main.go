@@ -12,6 +12,7 @@ import (
 
 	// "github.com/LigeronAhill/friday_bot/storage/files"
 	"github.com/LigeronAhill/friday_bot/storage/pg"
+	_ "github.com/lib/pq"
 )
 
 const (
