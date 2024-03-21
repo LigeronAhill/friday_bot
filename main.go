@@ -9,8 +9,8 @@ import (
 	"github.com/LigeronAhill/friday_bot/clients/telegram"
 	event_consumer "github.com/LigeronAhill/friday_bot/consumer/event-consumer"
 	ev "github.com/LigeronAhill/friday_bot/events/telegram"
+	"github.com/joho/godotenv"
 
-	// "github.com/LigeronAhill/friday_bot/storage/files"
 	"github.com/LigeronAhill/friday_bot/storage/pg"
 	_ "github.com/lib/pq"
 )
@@ -22,6 +22,10 @@ const (
 )
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 	token := os.Getenv("TELEGRAM_APITOKEN")
 	host := os.Getenv("PGHOST")
 	port := os.Getenv("PGPORT")
@@ -41,7 +45,7 @@ func main() {
 	}
 	tgClient := telegram.New(tgBotHost, token)
 	// tgClient := telegram.New(tgBotHost, mustToken())
-
+	// s := mem.New()
 	eventsProcessor := ev.New(tgClient, s)
 
 	log.Print("service started")
